@@ -12,12 +12,12 @@ use Encode;
 use open ":encoding(utf8)", ":std";
 use Encode qw/encode/;
 
-($alignment_file) = $ARGV[0];
-($reorder_file) = $ARGV[1];
+($alignment_file) = $ARGV[0]; #direction of your 1st xx-yy.A3.final file
+($reorder_file) = $ARGV[1]; #direction of your reordered corpus.xx
 open ALI, "<:utf8", $alignment_file or die $!;
 # open ALIOUTPUT, ">:utf8", "alioutput" or die $!;
 # open COR, ">:utf8", "corpus" or die $!;
-$a=0;#Corpus array
+$a=0;#Corpus array; 
 $b=0;#NULL array
 $c=0;#Alignment array
 while (<ALI>)
