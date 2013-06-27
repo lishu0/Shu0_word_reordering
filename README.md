@@ -1,4 +1,5 @@
-lish0_word_reordering
+lishu0_word_reordering
 =====================
 
-There are some scripts to pre-reorder the word
+There are two scripts to pre-reorder the word
+
