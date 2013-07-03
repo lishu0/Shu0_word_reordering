@@ -1,30 +1,31 @@
 #!/usr/bin/perl
 ###Give the dir of 1.alignment_file & 2.reordered_corpus_file in the cmd!
-###This is the 2.0 version which consider the NULL({}) situation! 
+###This is the 2.0 version which consider the NULL({$x}) situation! put the $x in front of $x-1!
 ###And the code were modified to let the 3 arraies in memory!
-###Last modified 12/04/2013 
+###Last modified 19/04/2013 by Shuo Li
 print "Written by Shuo Li, University of Macau\n";
 $start_time = (times)[0];
 use utf8; 
 use Encode;
+use List::Util qw/max min/;
 # use LWP::Simple;
 # use warnings;
 use open ":encoding(utf8)", ":std";
 use Encode qw/encode/;
 
-($alignment_file) = $ARGV[0]; #direction of your 1st xx-yy.A3.final file
-($reorder_file) = $ARGV[1]; #direction of your reordered corpus.xx
+($alignment_file) = $ARGV[0];
+($reorder_file) = $ARGV[1];
 open ALI, "<:utf8", $alignment_file or die $!;
 # open ALIOUTPUT, ">:utf8", "alioutput" or die $!;
 # open COR, ">:utf8", "corpus" or die $!;
-$a=0;#Corpus array; 
+$a=0;#Corpus array
 $b=0;#NULL array
 $c=0;#Alignment array
 while (<ALI>)
 {
   if (/^NULL \(\{/)
   {
-  chomp($_);
+	chomp($_);
 	m/^NULL\s\(\{(.*?)\s\}\)\s(.*?$)/;
 	$null_id=$1; #null
 	$align_id=$2; #align text
@@ -84,7 +85,7 @@ $m=0;
 print $a.' '.$b.' '.$c."\n";
 if ($a==$b && $b==$c)
 {
-	open ALIOUTPUTNUM, ">:utf8", $reorder_file or die $!;
+	open ALIOUTPUTNUM, ">:utf8", "reordered_tmp" or die $!;
 	open ORIALI, ">:utf8", "oriali.txt" or die $!;
 	$a=0;
 	$count1=0;
@@ -92,7 +93,8 @@ if ($a==$b && $b==$c)
 
 	for ($n=0; $n< $b; $n++)
 	{
-
+		$max = max @{$align_store_two[$n]};
+		# print $max;
 		if (!$null_store_two[$n][0])   #NULL is null
 		{
 			$tmp_align_len=@tmp=@{$align_store_two[$n]}; 
@@ -111,12 +113,13 @@ if ($a==$b && $b==$c)
 		}
 		else
 		{
-			$tmp_null_len=@tmp=@{$null_store_two[$n]};	
+			$tmp_null_len=@tmp=@{$null_store_two[$n]};
 			for ($m=0; $m < $tmp_null_len; $m++)
 			{
 				$count_id=0;
-				$null=$null_store_two[$n][$m]-1;
-				if ($null==0)
+				# $null=$null_store_two[$n][$m]-1;
+				$null=$null_store_two[$n][$m]+1;
+				if ($null==2)##
 				{
 					$newid=0;
 					foreach $var_1 (@{$align_store_two[$n]})
@@ -133,7 +136,7 @@ if ($a==$b && $b==$c)
 					{
 						if ($var==$null)
 						{
-							$count_id++;
+							# $count_id++;
 							last;
 						}
 						# print $var.' ';
@@ -143,13 +146,24 @@ if ($a==$b && $b==$c)
 					$newid=0;
 					foreach $var_1 (@{$align_store_two[$n]})
 					{
-						$new_align_store_two[$n][$newid]=$var_1;
-						$newid++;
-						if ($newid==$count_id)
+						# $new_align_store_two[$n][$newid]=$var_1;
+						# $newid++;
+						if ($null_store_two[$n][$m] > $max)
+						{
+							$new_align_store_two[$n][$null_store_two[$n][$m]-1]=$null_store_two[$n][$m];
+						}
+						elsif ($newid==$count_id)
 						{
 							$new_align_store_two[$n][$newid]=$null_store_two[$n][$m];
 							# $new_align_store_two[$n][$newid+1]=$var_1;
 							$newid++;	
+							$new_align_store_two[$n][$newid]=$var_1;
+							$newid++;
+						}
+						else
+						{
+							$new_align_store_two[$n][$newid]=$var_1;
+							$newid++;
 						}
 					}
 					
@@ -193,6 +207,18 @@ else
 {
 	print "ERROR with the $alignment_file!\n";
 }
+open ALIOUTPUTNUM, "<:utf8", "reordered_tmp" or die $!;
+open OUTPUT, ">:utf8", $reorder_file or die $!;
+while (<ALIOUTPUTNUM>)
+{
+	s/ +/ /g;
+	s/ / /g;
+	s/   / /g;
+	print OUTPUT $_;
+}
+close (ALIOUTPUTNUM);
+close (OUTPUT);
+unlink("reordered_tmp");
 $init_time = (times)[0] - $start_time;
 print("Compilation time: $init_time seconds\n");
 
